@@ -27,9 +27,8 @@ outputs = response["outputs"]
 print(response) 	
 
 
-"""
 
-energia_mensual={}
+energia_mensual={} #diccionario que contiene la energia mensual 
 
 meses_nombre = {
     1: 'enero',
@@ -48,7 +47,7 @@ meses_nombre = {
 
 
 
-
+# codigo para llenar el diccionario
 meses = outputs['monthly']['fixed']
 for diccionario in meses:
 	mes = diccionario['month']
@@ -71,7 +70,7 @@ plt.xticks(rotation=45)
 plt.grid(axis='y', linestyle='--', alpha=0.5)
 plt.tight_layout()
 plt.show()		
-"""	
+	
 		
 	
 
