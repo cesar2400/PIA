@@ -46,7 +46,7 @@ def obtener_produccion_anual(lat, lon, potencia_kw, perdidas, angulo=20, orienta
                 respuesta = json.load(archivo)
             print(respuesta['outputs'])
             print()               
-            print("¿Desea continuar (presione enter para continuar o cualquier otra tecla para volvar a intentar cargar los datos)? ")
+            print("¿Desea continuar (presione enter para continuar o cualquier otra tecla para volver a intentar cargar los datos)? ")
             sn = input(">>> ")
             print()
             if sn != "":                       
@@ -66,7 +66,6 @@ lat: Variable de tipo flotante.
 lon: Variable de tipo flotante.
 angulo: Varible de tipo flotante.
 orientación: Variable de tipo flotante.
-resultado: 
 """
 
 
