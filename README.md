@@ -1,12 +1,12 @@
 # PIA
 Programa creado para el Proyecto Integrador de Aprendizaje de la clase Programación Básica
 
-# EQUIPO FORMADO POR:
-*Cesar Alanis
-*Jorge Sanchez
-*Ximena Rocha
-*Carlos Gomez
-*Manuel Puente
+## EQUIPO FORMADO POR:
+* ##Cesar Alanis
+* ##Jorge Sanchez
+* ##Ximena Rocha
+* ##Carlos Gomez
+* ##Manuel Puente
 
 ## Planteamiento del problema
 
