@@ -37,4 +37,4 @@ Además, se generan visualizaciones comparativas que permiten al usuario identif
 
 En caso de no contar con conexión a internet, el script incluye un mecanismo de respaldo que permite utilizar una consulta previa guardada localmente (prueba.json).
 
-Para más información sobre la API de PVGIS y sus especificaciones técnicas, puedes consultar la documentación oficial en el siguiente enlace: https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/getting-started-pvgis/api-non-interactive-service_en
+Para más información sobre la API de PVGIS y sus especificaciones técnicas, puedes consultar la documentación oficial en el siguiente enlace: [Documentación API PVGIS](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/getting-started-pvgis/api-non-interactive-service_en).
