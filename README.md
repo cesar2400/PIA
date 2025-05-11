@@ -13,4 +13,28 @@ El crecimiento de los sistemas fotovoltaicos no solo permite mitigar el impacto 
 
 Este crecimiento tan significativo en la instalación de sistemas fotovoltaicos de generación distribuida hace necesario que los consumidores comprendan cuánta energía podrán generar con su sistema y si esta será suficiente para cubrir total o parcialmente su consumo doméstico. Esta información es fundamental para evitar gastos innecesarios y para evaluar si la adquisición del sistema resulta económicamente conveniente, dando así paso a herramientas de predicción que puedan apoyar esta toma de decisiones. Por ello, mediante la utilización de la API PVGIS, se planea la obtención de la producción anual a través de cada mes, para después solicitar al usuario los datos históricos de consumo ubicados en su recibo de CFE, comparando así ambos datos y, en base a ello, el usuario pueda tomar una decisión más adecuada y acertada, volviendo así más sencilla la toma de decisiones, lo que pudiera traducirse en un aumento mucho mayor en la instalación de sistemas fotovoltaicos, lo que a su vez beneficia al medio ambiente.
 
+## PVGIS
 
+Este proyecto emplea la API PVGIS (Photovoltaic Geographical Information System), desarrollada por el Joint Research Centre (JRC) de la Comisión Europea, para estimar la producción energética de un sistema fotovoltaico residencial en Monterrey, Nuevo León.
+
+Se utilizó específicamente el endpoint PVcalc de la versión 5.2 de la API, que permite simular la generación de energía mensual y anual de un sistema fotovoltaico basado en los siguientes parámetros:
+
+Latitud y longitud del sitio: 25.67, -100.31
+
+Potencia pico instalada: 3.99 kW
+
+Pérdidas del sistema: 14%
+
+Ángulo de inclinación: 20° 
+
+Orientación: 180° (hacia el sur)
+
+Formato de salida: JSON
+
+La consulta se realiza mediante el método HTTP GET utilizando la biblioteca requests en Python. Los datos obtenidos incluyen la producción mensual estimada (en kWh), que posteriormente se agrupan en bimestres y se comparan con los consumos reales proporcionados por el usuario a partir de sus recibos de CFE.
+
+Además, se generan visualizaciones comparativas que permiten al usuario identificar de forma clara si el sistema es capaz de cubrir su consumo, así como el ahorro económico estimado.
+
+En caso de no contar con conexión a internet, el script incluye un mecanismo de respaldo que permite utilizar una consulta previa guardada localmente (prueba.json).
+
+Para más información sobre la API de PVGIS y sus especificaciones técnicas, puedes consultar la documentación oficial en el siguiente enlace:
