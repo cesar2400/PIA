@@ -2,7 +2,7 @@
 
 En este proyecto, se utilizaron **diccionarios** y **listas** como estructuras principales para procesar los resultados obtenidos de la API de PVGIS. Esta elección se justifica tanto por la **naturaleza del formato JSON** de la respuesta, como por la **facilidad que ofrecen estas estructuras para la manipulación y visualización de datos**.
 
-### 📦 Diccionario (`dict`)
+###  Diccionario (`dict`)
 
 * La API devuelve los datos en formato JSON, que es análogo a un diccionario en Python.
 * Se utilizó un diccionario llamado `energia_mensual` para almacenar la **energía mensual generada**, donde:
@@ -19,7 +19,7 @@ energia_mensual = {
 }
 ```
 
-### 📋 Lista (`list`)
+### Lista (`list`)
 
 * Posteriormente, se extraen las claves y valores del diccionario para almacenarlos en listas separadas (`meses` y `energia`), lo cual es más conveniente para graficar:
 
