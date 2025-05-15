@@ -16,13 +16,13 @@ def main():
         print("No hay conexión a internet. Usando datos locales de respaldo...")
         datos_locales = mo.cargar_json_local()
         if datos_locales is None:
-            print("❌ No se pudo cargar el archivo local.")
+            print("No se pudo cargar el archivo local.")
             return
         try:
             lat = datos_locales["inputs"]["location"]["latitude"]
             lon = datos_locales["inputs"]["location"]["longitude"]
         except KeyError:
-            print("❌ El archivo local no contiene coordenadas válidas.")
+            print("El archivo local no contiene coordenadas válidas.")
             return
 
     # Pedimos la potencia (esto se puede hacer siempre, tenga o no internet)
