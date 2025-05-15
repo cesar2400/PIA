@@ -50,5 +50,5 @@ def exportar_a_excel(energia_mensual, ubicacion="", nombre_archivo="informe_sola
 
     # Guardar el archivo
     wb.save(nombre_archivo)
-    print(f"✅ Informe exportado como '{nombre_archivo}'")
+    print(f"Informe exportado como '{nombre_archivo}'")
 
