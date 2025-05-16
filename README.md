@@ -57,8 +57,8 @@ Geocodificación inversa: a partir de coordenadas geográficas, devuelve una dir
 
 Búsquedas estructuradas: permite enviar partes de una dirección (ciudad, país, calle) como parámetros separados.
 
-[Documentación oficial:](https://nominatim.org/release-docs/latest/api/Overview/)
-
 Resultados detallados: entrega el nombre completo (display_name) del lugar, el tipo de ubicación y su jerarquía administrativa (país, estado, municipio, etc.).
+
+[Documentación oficial:](https://nominatim.org/release-docs/latest/api/Overview/)
 
 
