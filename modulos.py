@@ -8,7 +8,7 @@ import requests
 import statistics
 import re
 
-def direccion_a_coordenadas(direccion, user_agent="geolocalizador-app/1.0 (dev@miapp.com)"):
+def direccion_a_coordenadas(direccion, user_agent="solar-school-project/1.0 (local-use)"):
     """
     Convierte una dirección en coordenadas geográficas usando la API pública de Nominatim (OpenStreetMap).
     
