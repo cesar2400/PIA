@@ -7,13 +7,48 @@ import pandas as pd
 import os 
 import json
 from re import search
+import pyautogui
+import subprocess
+import psutil
+
+def obtener_nombre_proceso(nombre_parcial_aplicacion):
+	nombres_encontrados = []
+	for proc in psutil.process_iter(['pid', 'name']):
+		if nombre_parcial_aplicacion.lower() in proc.info['name'].lower():
+			nombres_encontrados.append(proc.info['name'])
+	return nombres_encontrados
+
+def cerrar_proceso_windows(nombre_proceso):
+	"""
+	Intenta terminar un proceso por su nombre en Windows.
+	Ejemplo: Si sabes que la aplicación se llama "mi_aplicacion.exe"
+		cerrar_proceso_windows("mi_aplicacion.exe")
+	"""
+	try:
+		subprocess.run(['taskkill', '/F', '/IM', f'{nombre_proceso}'], check=True)
+	except subprocess.CalledProcessError as e:
+		print(f"Error al intentar terminar el proceso '{nombre_proceso}': {e}")
+	except FileNotFoundError:
+		print("El comando 'taskkill' no se encontró (esto debería ser raro en Windows).")
+
 
 def limpiar_pantalla():
+	"""
+	Esta función solo sirve para el sistema operativo de Windows cmd.
+	Facilita la visualización de los datos pero, a no ser que se tengan almacenados los datos de antemano, se perderan.
+
+	"""
 	os.system('cls' if os.name == 'nt' else 'clear')
 	
 def pedir_numero_int(numero = None, mensaje = "Numero: "):
-	num_match = search(r"\d+",numero)
-	while num_match == None or num_match.group() != numero:
+	"""
+	Esta función se emplea en situaliones en las que es necesario obtener un numero entero.
+	"""
+	if numero:
+		num_match = search(r"\d+",numero)
+	else:
+		num_match = None
+	while not num_match or num_match.group() != numero:
 		numero = input(mensaje)
 		num_match = search(r"\d+",numero)
 		#print(numero,num_match)
@@ -22,7 +57,20 @@ def pedir_numero_int(numero = None, mensaje = "Numero: "):
 			break
 	return int(numero)
 	
-def abrir_cerrar_archivo(ruta_archivo): # Reemplaza con la ruta real de tu archivo
+def abrir_archivo(ruta_archivo,nombre_parcial  = None): 
+	"""
+	Literalmente una función que abre y luego cierra automaticamente un archivo desde el sistema operativo de windows.
+	Declaración de variables:
+		ruta_archivo: Reemplaza con la ruta real de tu archivo con el formato r'*Ruta_especifica*' 
+	"""
+	print("Presione enter si desea poner un cronometro especifico, \"5\" si desea que solo espere los 5 minutos preestablesidos o cualquier otra tecla no realizar el proceso.")
+	sn = input(">>> ")
+	if sn == "":
+		n = int(input("Introduzca el tiempo de espera en minutos. \n>>> "))
+	elif sn == "5":
+		n = None
+	else:
+		n = ""
 	try:
 		os.startfile(ruta_archivo)
 		print(f"Abriendo el archivo: {ruta_archivo}")
@@ -30,9 +78,33 @@ def abrir_cerrar_archivo(ruta_archivo): # Reemplaza con la ruta real de tu archi
 		print(f"El archivo no fue encontrado: {ruta_archivo}")
 	except OSError as e:
 		print(f"No se pudo abrir el archivo. Error: {e}")
-	n = int(input("Introduzca el tiempo de espera en minutos. \n>>> "))
-	for i in range(n):
-		time.sleep(60)
+	
+	if nombre_parcial:
+		procesos = obtener_nombre_proceso(nombre_parcial)
+	elif n != "":
+		print("No se introdujo el nombre de la aplicación.")
+		return
+	
+	if not n and procesos:
+		pausar()
+		for i in range(len(procesos)):
+			cerrar_proceso_windows(procesos[i])
+		print(f"Archivo {ruta_archivo} cerrado")
+	elif n != "" and procesos:
+		pausar(n)
+		for i in range(len(procesos)):
+			cerrar_proceso_windows(procesos[i])
+		print(f"Archivo {ruta_archivo} cerrado")
+	
+
+def pausar(n = None):
+	if not n:
+		print("Tiene 5 minutos.")
+		for i in range(5):
+			time.sleep(60)
+	elif n:
+		for i in range(n):
+			time.sleep(60)
 		
 
 def abrir_crear(nombre_archivo = None,nombre_hoja = None,nueva_hoja = None):
@@ -61,12 +133,6 @@ def abrir_crear(nombre_archivo = None,nombre_hoja = None,nueva_hoja = None):
 		hoja = archivo.active
 	return archivo,hoja
 
-def crear_tabla(datos: dict or list,nombre_hoja = None,nombre_archivo = None,nueva_hoja = None):
-	archivo,hoja = abrir_crear(nombre_archivo,nombre_hoja,nueva_hoja)
-	
-	df = pd.DataFrame(datos)
-	
-	archivo.save(nombre_archivo)
 
 def contenido_excel(nombre_archivo = None,nombre_hoja = None):
 	archivo,hoja = abrir_crear(nombre_archivo,nombre_hoja)
@@ -130,8 +196,20 @@ def extraer_datos(archivo_json):
 	
 
 if __name__ == "__main__":
+	limpiar_pantalla()
+
+
 	nombre_archivo = 'excel_usuario.xlsx'
 	nombre_hoja = 'Usuarios'
+
+
+	procesos = obtener_nombre_proceso("Excel")
+
+	input(procesos)
+	for i in range(len(procesos)):
+		cerrar_proceso_windows(procesos[i])
+		time.sleep(3)
+	# Esta parte fue añadida para evitar que el proceso se interumpa por que el archivo esté abierto.
 	
 	datos = contenido_excel(nombre_archivo,nombre_hoja)
 	#input(datos)
@@ -142,6 +220,12 @@ if __name__ == "__main__":
 		
 	#input(datos)
 	guardar_excel(nombre_archivo,nombre_hoja,datos)
+	
+	datos = contenido_excel(nombre_archivo,nombre_hoja)
+	#input(datos)
+	
+	ruta_archivo = r'excel_usuario.xlsx' 
+	abrir_archivo(ruta_archivo,"Excel")
 	
 	datos = contenido_excel(nombre_archivo,nombre_hoja)
 	#input(datos)
