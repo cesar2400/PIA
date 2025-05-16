@@ -161,11 +161,11 @@ def cargar_json_local():
             return json.load(archivo)
 
     except FileNotFoundError:
-        print("⚠️ El archivo 'prueba.json' no se encontró.")
+        print("El archivo 'prueba.json' no se encontró.")
         return None
 
     except json.JSONDecodeError:
-        print("⚠️ El archivo no contiene un JSON válido.")
+        print("El archivo no contiene un JSON válido.")
         return None
 
 
