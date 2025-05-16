@@ -94,6 +94,5 @@ MIT — Puedes usar y modificar este proyecto libremente, siempre que des crédi
 
 ---
 
-## Autor
 
 
