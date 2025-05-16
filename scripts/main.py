@@ -1,149 +1,53 @@
-import requests
-import json
-import matplotlib.pyplot as plt
-import statistics
-import numpy as np
-import os
-import sys
-from requests.exceptions import ConnectionError
+import modulos as mo
+import prueba_excel as pe
+from excel import excel_main
 
+def main():
+    # Primero verificamos si hay internet
+    if mo.hay_internet():
+        # Usamos flujo interactivo para obtener coordenadas desde OpenStreetMap
+        lat, lon, ubi = mo.obtener_coordenadas_interactivas()
+        potencia_kw = mo.pedir_potencia()
+        perdidas = 14
+        if lat is None or lon is None:
+            print("No se pudo convertir la dirección en coordenadas.")
+            return
+    else:
+        # Sin internet, cargamos lat/lon desde archivo local (como prueba.json)
+        print("No hay conexión a internet. Usando datos locales de respaldo...")
+        datos_locales = mo.cargar_json_local()
+        if datos_locales is None:
+            print("No se pudo cargar el archivo local.")
+            return
+        try:
+            ubi = "Estandar"
+            lat = datos_locales["inputs"]["location"]["latitude"]
+            lon = datos_locales["inputs"]["location"]["longitude"]
+        except KeyError:
+            print("El archivo local no contiene coordenadas válidas.")
+            return
 
-def obtener_produccion_anual(lat, lon, potencia_kw, perdidas, angulo=20, orientacion = 180): # Orientación Sur
-    url = "https://re.jrc.ec.europa.eu/api/v5_2/PVcalc"
-    params = {
-        "lat": lat,
-        "lon": lon,
-        "peakpower": potencia_kw,
-        "loss": perdidas,
-        "angle": angulo,
-        "aspect": orientacion,
-        "outputformat": "json"
-    }
-
-    try:
-        response = requests.get(url, params=params)
-            
-        if response.status_code == 200:
-            try:
-                return response.json()
-            except Exception as e:
-                print("Error al procesar JSON:", e)
-                return None
-
-    except ConnectionError as e:
-        print(f"Error de conexión a Internet: {e}")
-        print("Presione enter para continuar un un caso guardado, presione cualquier otra tecla y luego enter si decea obtener la información a utilizar.") 
-        sn = input(">>> ")  
-        print()
-	
-        
-        if os.path.exists("prueba.json") and sn == "":
-            with open("prueba.json", "r") as archivo:
-                return json.load(archivo)
-                             
-        while True:    
-            with open("prueba.json", "r") as archivo:
-                respuesta = json.load(archivo)
-            print(respuesta['outputs'])
-            print()               
-            print("¿Desea continuar (presione enter para continuar o cualquier otra tecla para volver a intentar cargar los datos)? ")
-            sn = input(">>> ")
-            print()
-            if sn != "":                       
-                return obtener_produccion_anual(lat,lon,potencia_kw,perdidas,angulo,orientacion)
-            else:                 
-                return respuesta           
-                                            
-    except requests.exceptions.RequestException as e:
-        print(f"Ocurrió otro error con la solicitud: {e}")
-        return None
+    # Pedimos la potencia (esto se puede hacer siempre, tenga o no internet)
     
 
+    if mo.hay_internet():
+        print("Conexión detectada. Consultando PVGIS...")
+        datos = mo.obtener_datos_pvgis(lat, lon, potencia_kw, perdidas)
+    else:
+        print("Sin conexión. Cargando nuevamente los datos locales...")
+        datos = mo.cargar_json_local()
 
+    if datos:
+        energia_mensual = mo.extraer_energia_mensual(datos)
+        print("Energía mensual estimada (kWh):")
+        for mes, energia in energia_mensual.items():
+            print(f"{mes.capitalize()}: {energia:.2f}")
+        
+    else:
+        print("No se pudieron obtener los datos del sistema.")
 
-"""
-lat: Variable de tipo flotante.
-lon: Variable de tipo flotante.
-angulo: Varible de tipo flotante.
-orientación: Variable de tipo flotante.
-"""
+    excel_main(energia_mensual, ubi, nombre_archivo="informe_solar.xlsx")
 
-
-resultado = obtener_produccion_anual(25.67, -100.31, 3.99, 14)
-
-if not resultado:
-    input("No se obtuvieron datos, se detendrá el programa")
-    sys.exit()
-
-outputs = resultado['outputs']
-outputs_totals = outputs['monthly']['fixed']
-produccion_anual = outputs_totals
-generacion_mensual = []
-for month in outputs_totals:
-    generacion_mensual.append(month['E_m'])
-#print(generacion_mensual)
-
-generacion_bimestral = [generacion_mensual[i] + generacion_mensual[i+1] for i in range(0, 12, 2)]
-
-tarifa = 2.5  # pesos por kWh
-ahorro_bimestral = [round(mes*tarifa, 2) for mes in generacion_bimestral]
-
-
-
-print(ahorro_bimestral)
-
-meses = ["Ene-Feb", "Mar-Abr", "May-Jun",
-         "Jul-Ago", "Sep-Oct", "Nov-Dic"]
-cfe = [308, 524, 1449, 1713, 1325, 591]
-
-# Crear gráfico de barras
-plt.figure(figsize=(10, 5))
-plt.bar(meses, ahorro_bimestral)
-
-# Añadir títulos y etiquetas
-plt.title("Ahorro mensual estimado en pesos")
-plt.xlabel("Mes")
-plt.ylabel("Ahorro (MXN)")
-plt.grid(axis='y', linestyle='--', alpha=0.7)
-
-for i, valor in enumerate(ahorro_bimestral):
-    plt.text(i, valor + 15, f"${valor:.0f}", ha='center', va='bottom')
-
-plt.tight_layout()
-plt.show()
-
-media = statistics.mean(ahorro_bimestral)
-mediana = statistics.median(ahorro_bimestral)
-moda = statistics.mode(ahorro_bimestral)  # cuidado si no hay moda única
-desviacion_estandar = statistics.stdev(ahorro_bimestral)
-
-print(media, mediana, moda, desviacion_estandar)
-
-x = np.arange(len(meses))  # [0, 1, 2, 3, 4, 5]
-ancho = 0.35  # ancho de cada barra
-
-# Crear gráfico
-plt.figure(figsize=(10, 5))
-barras_gen = plt.bar(x - ancho/2, generacion_bimestral, width=ancho, label='Generación solar')
-barras_con = plt.bar(x + ancho/2, cfe, width=ancho, label='Consumo CFE')
-
-# Etiquetas y título
-plt.xticks(x, meses)
-plt.ylabel('Energía (kWh) o Ahorro ($)')
-plt.title('Comparación Bimestral: Generación vs. Consumo')
-plt.legend()
-plt.grid(axis='y', linestyle='--', alpha=0.7)
-
-for barra in barras_gen:
-    altura = barra.get_height()
-    plt.text(barra.get_x() + barra.get_width()/2, altura + 50, f'{altura:.0f}', ha='center', va='bottom')
-
-for barra in barras_con:
-    altura = barra.get_height()
-    plt.text(barra.get_x() + barra.get_width()/2, altura + 50, f'{altura:.0f}', ha='center', va='bottom')
-
-
-# Mostrar el gráfico
-plt.tight_layout()
-plt.show()
+if __name__ == "__main__":
+	main()
 
