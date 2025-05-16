@@ -18,7 +18,7 @@ Afortunadamente, el avance en tecnologías basadas en semiconductores ha hecho q
 
 El crecimiento de los sistemas fotovoltaicos no solo permite mitigar el impacto económico del consumo eléctrico doméstico, sino que también representa una alternativa ambientalmente sostenible. En México, gran parte de la electricidad sigue generándose mediante combustibles fósiles; por lo tanto, el uso de energía solar contribuye significativamente a la reducción de emisiones de carbono.
 
-Este crecimiento tan significativo en la instalación de sistemas fotovoltaicos de generación distribuida hace necesario que los consumidores comprendan cuánta energía podrán generar con su sistema y si esta será suficiente para cubrir total o parcialmente su consumo doméstico. Esta información es fundamental para evitar gastos innecesarios y para evaluar si la adquisición del sistema resulta económicamente conveniente, dando así paso a herramientas de predicción que puedan apoyar esta toma de decisiones. Por ello, mediante la utilización de la API PVGIS, se planea la obtención de la producción anual a través de cada mes, para después solicitar al usuario los datos históricos de consumo ubicados en su recibo de CFE, comparando así ambos datos y, en base a ello, el usuario pueda tomar una decisión más adecuada y acertada, volviendo así más sencilla la toma de decisiones, lo que pudiera traducirse en un aumento mucho mayor en la instalación de sistemas fotovoltaicos, lo que a su vez beneficia al medio ambiente.
+La creciente demanda de sistemas fotovoltaicos de generación distribuida ha puesto sobre la mesa la necesidad de que las empresas automatizen el proceso de cotización y análisis energético. Automatizar esta etapa no solo agiliza la atención al cliente, sino que también reduce errores humanos, mejora la presentación de resultados y permite tomar decisiones más rápidas y fundamentadas. Este software representa un gran paso hacia esa automatización, ya que permite estimar la generación energética mensual a partir de una dirección y potencia ingresadas, y genera un informe completo con análisis económico, visualizaciones gráficas y estadísticas clave. Utilizando la API de PVGIS, se simula la producción energética anual del sistema, permitiendo comparar dicha generación contra consumos históricos, mejorar la toma de decisiones y facilitar la evaluación de viabilidad económica para los usuarios finales.
 
 ## PVGIS
 
@@ -45,3 +45,20 @@ Además, se generan visualizaciones comparativas que permiten al usuario identif
 En caso de no contar con conexión a internet, el script incluye un mecanismo de respaldo que permite utilizar una consulta previa guardada localmente (prueba.json).
 
 Para más información sobre la API de PVGIS y sus especificaciones técnicas, puedes consultar la documentación oficial en el siguiente enlace: [Documentación API PVGIS](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/getting-started-pvgis/api-non-interactive-service_en).
+
+## API Nominatim – OpenStreetMap
+
+Nominatim es un servicio de geocodificación desarrollado por OpenStreetMap (OSM) que permite convertir direcciones físicas en coordenadas geográficas (latitud y longitud) y viceversa. Es ampliamente utilizado para aplicaciones de mapeo, navegación, análisis espacial y automatización de ubicaciones.
+
+### Funcionalidades principales:
+Geocodificación directa: convierte una dirección como "Av. Universidad, Monterrey" en coordenadas (lat, lon).
+
+Geocodificación inversa: a partir de coordenadas geográficas, devuelve una dirección aproximada.
+
+Búsquedas estructuradas: permite enviar partes de una dirección (ciudad, país, calle) como parámetros separados.
+
+[Documentación oficial:](https://nominatim.org/release-docs/latest/api/Overview/)
+
+Resultados detallados: entrega el nombre completo (display_name) del lugar, el tipo de ubicación y su jerarquía administrativa (país, estado, municipio, etc.).
+
+
