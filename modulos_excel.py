@@ -1,7 +1,9 @@
 import os
-import time
 from openpyxl import Workbook as work
 from openpyxl import load_workbook as lw
+import openpyxl
+from openpyxl.drawing.image import Image as ExcelImage
+import matplotlib.pyplot as plt
 from os.path import exists
 import pandas as pd
 import os 
@@ -10,6 +12,22 @@ from re import search
 import pyautogui
 import subprocess
 import psutil
+import datetime
+import time
+import statistics
+
+
+import main 
+
+def extraer_fecha_hora():
+	"""
+	Devuelve la fecha y la hora del momento de su ejecución.
+	"""
+	ahora = datetime.datetime.now()
+	fecha = ahora.strftime("%d/%m/%Y")
+	hora = ahora.strftime("%H:%M:%S")
+	
+	return fecha,hora
 
 def obtener_nombre_proceso(nombre_parcial_aplicacion):
 	nombres_encontrados = []
@@ -70,7 +88,7 @@ def abrir_archivo(ruta_archivo,nombre_parcial  = None):
 	elif sn == "5":
 		n = None
 	else:
-		n = ""
+		n = "p"
 	try:
 		os.startfile(ruta_archivo)
 		print(f"Abriendo el archivo: {ruta_archivo}")
@@ -90,7 +108,7 @@ def abrir_archivo(ruta_archivo,nombre_parcial  = None):
 		for i in range(len(procesos)):
 			cerrar_proceso_windows(procesos[i])
 		print(f"Archivo {ruta_archivo} cerrado")
-	elif n != "" and procesos:
+	elif n != "p" and procesos:
 		pausar(n)
 		for i in range(len(procesos)):
 			cerrar_proceso_windows(procesos[i])
@@ -108,7 +126,7 @@ def pausar(n = None):
 		
 
 def abrir_crear(nombre_archivo = None,nombre_hoja = None,nueva_hoja = None):
-	if exists(nombre_archivo):
+	if nombre_archivo and exists(nombre_archivo):
 		try:
 			archivo = lw(nombre_archivo)
 		except Exception as e:
@@ -175,6 +193,152 @@ def guardar_varios(nombre_archivo,nombres_hojas,dataframes):
 		
 	except Exception as e:
 		print(f"Ocurrió un error al guardar los DataFrames en Excel: {e}")
+def guardar_estadisticas(energia_mensual, ubicacion="",fecha_hora: tuple = None, nombre_archivo= None, nombre_hoja = "Caso estándar"):
+	"""
+	Exporta la energía mensual a un archivo Excel con una gráfica y ubicación al inicio.
+	
+	"""
+	# Crear libro de Excel y hoja activa
+	wb,ws = abrir_crear(nombre_archivo,nombre_hoja)
+	
+
+	# Agregar ubicación en la parte superior
+	ws["A1"] = "Ubicación:"
+	ws["B1"] = ubicacion
+	ws["D1"] = "Fecha:"
+	ws["E1"] = fecha_hora[0]
+	ws["G1"] = "Hora:"
+	ws["H1"] = fecha_hora[1]
+	
+	# Encabezados de la tabla
+	ws["A3"] = "Mes"
+	ws["B3"] = "Energía (kWh)"
+	ws["C3"] = "Valor monetario"
+
+	# Insertar los datos debajo
+	fila = 4
+	energias = []
+	for mes, energia in energia_mensual.items():
+		ws[f"A{fila}"] = mes.capitalize()
+		ws[f"B{fila}"] = energia
+		energias.append(energia)
+		ws[f"C{fila}"] = energia * 2.5
+		fila += 1
+	
+	ws[f"A{fila + 1}"] = "Datos estadisticos."
+	ws[f"B{fila + 1}"] = "Valor estadistico."
+	ws[f"A{fila + 2}"] = "Mediana:"
+	ws[f"B{fila + 2}"] = statistics.median(energias)
+	
+	ws[f"A{fila + 3}"] = "Media:" 
+	ws[f"B{fila + 3}"] = statistics.mean(energias)
+	
+	ws[f"A{fila + 4}"] = "Desviación estándar:" 
+	ws[f"B{fila + 4}"] = statistics.stdev(energias)
+	
+	# Crear gráfica y guardarla como imagen
+	meses = list(energia_mensual.keys())
+	valores = list(energia_mensual.values())
+
+	plt.figure(figsize=(10, 6))
+	plt.bar(meses, valores)
+	plt.xlabel("Mes")
+	plt.ylabel("Energía mensual (kWh)")
+	plt.title("Producción mensual de energía")
+	plt.xticks(rotation=45)
+	plt.tight_layout()
+	plt.grid(axis='y', linestyle='--', alpha=0.5)
+	nombre_imagen = "grafica_solar.png"
+	plt.savefig(nombre_imagen)
+	plt.close()
+	# Insertar imagen en Excel
+	img = ExcelImage(nombre_imagen)
+	img.anchor = f"E3"
+	ws.add_image(img)
+	
+	# Guardar el archivo
+	wb.save(nombre_archivo)
+	print(f"Informe exportado como '{nombre_archivo}'")
+
+def renovar_contenido(archivo_entrada, archivo_salida = None, nombre_hoja = None,nueva_hoja = True):
+	"""
+	Extrae el contenido de un archivo Excel y lo guarda en un nuevo archivo o en el mismo pero con otra hoja,
+	manteniendo la estructura básica (ubicación, fecha, hora, tabla, estadísticas, gráfica).
+	"""
+	if not archivo_salida:
+		archivo_salida = archivo_entrada
+		nueva_hoja = True
+	try:
+		# 1. Cargar el archivo de entrada
+		libro_entrada = openpyxl.load_workbook(archivo_entrada)
+		hoja_entrada = libro_entrada.active
+
+		# 2. Crear un nuevo libro de Excel y hoja activa
+		libro_salida, hoja_salida = abrir_crear(archivo_salida,nombre_hoja,nueva_hoja)
+
+		# --- 3. Copiar la información de la parte superior ---
+		hoja_salida["A1"] = hoja_entrada["A1"].value
+		hoja_salida["B1"] = hoja_entrada["B1"].value
+		hoja_salida["D1"] = hoja_entrada["D1"].value
+		hoja_salida["E1"] = hoja_entrada["E1"].value
+		hoja_salida["G1"] = hoja_entrada["G1"].value
+		hoja_salida["H1"] = hoja_entrada["H1"].value
+
+		# --- 4. Copiar los encabezados de la tabla ---
+		hoja_salida["A3"] = hoja_entrada["A3"].value
+		hoja_salida["B3"] = hoja_entrada["B3"].value
+		hoja_salida["C3"] = hoja_entrada["C3"].value
+
+		# --- 5. Copiar los datos de la tabla de energía mensual ---
+		fila_entrada = 4
+		fila_salida = 4
+		energia_mensual_extraida = {}
+		while hoja_entrada[f"A{fila_entrada}"].value is not None:
+			hoja_salida[f"A{fila_salida}"] = hoja_entrada[f"A{fila_entrada}"].value
+			hoja_salida[f"B{fila_salida}"] = hoja_entrada[f"B{fila_entrada}"].value
+			hoja_salida[f"C{fila_salida}"] = hoja_entrada[f"C{fila_entrada}"].value
+			energia_mensual_extraida[hoja_entrada[f"A{fila_entrada}"].value.lower()] = hoja_entrada[f"B{fila_entrada}"].value
+			fila_entrada += 1
+			fila_salida += 1
+
+		# --- 6. Copiar los datos estadísticos ---
+		fila_estadisticos_entrada = fila_entrada + 1
+		hoja_salida[f"A{fila_salida + 1}"] = hoja_entrada[f"A{fila_estadisticos_entrada}"].value
+		hoja_salida[f"B{fila_salida + 1}"] = hoja_entrada[f"B{fila_estadisticos_entrada}"].value
+		hoja_salida[f"A{fila_salida + 2}"] = hoja_entrada[f"A{fila_estadisticos_entrada + 1}"].value
+		hoja_salida[f"B{fila_salida + 2}"] = hoja_entrada[f"B{fila_estadisticos_entrada + 1}"].value
+		hoja_salida[f"A{fila_salida + 3}"] = hoja_entrada[f"A{fila_estadisticos_entrada + 2}"].value
+		hoja_salida[f"B{fila_salida + 3}"] = hoja_entrada[f"B{fila_estadisticos_entrada + 2}"].value
+		hoja_salida[f"A{fila_salida + 4}"] = hoja_entrada[f"A{fila_estadisticos_entrada + 3}"].value
+		hoja_salida[f"B{fila_salida + 4}"] = hoja_entrada[f"B{fila_estadisticos_entrada + 3}"].value
+
+		# --- 7. Re-crear y copiar la gráfica ---
+		meses = list(energia_mensual_extraida.keys())
+		valores = list(energia_mensual_extraida.values())
+
+		plt.figure(figsize=(10, 6))
+		plt.bar(meses, valores)
+		plt.xlabel("Mes")
+		plt.ylabel("Energía mensual (kWh)")
+		plt.title("Producción mensual de energía")
+		plt.xticks(rotation=45)
+		plt.tight_layout()
+		plt.grid(axis='y', linestyle='--', alpha=0.5)
+		nombre_imagen_nuevo = "grafica_temporal.png" # Nombre temporal para la nueva gráfica
+		plt.savefig(nombre_imagen_nuevo)
+		plt.close()
+
+		img_nueva = ExcelImage(nombre_imagen_nuevo)
+		img_nueva.anchor = f"D3"
+		hoja_salida.add_image(img_nueva)
+
+		# --- 8. Guardar el nuevo archivo ---
+		libro_salida.save(archivo_salida)
+
+	except FileNotFoundError:
+		print(f"Error: El archivo '{archivo_entrada}' no fue encontrado.")
+	except Exception as e:
+		print(f"Ocurrió un error: {e}")
 
 def extraer_datos(archivo_json):
 	with open(archivo_json,'r') as archivo:
@@ -194,41 +358,31 @@ def extraer_datos(archivo_json):
 				datos[i][j] = aux[i][j]
 	return datos
 	
-
-if __name__ == "__main__":
+def excel_main(energia_mensual,ubi,nombre_archivo = 'excel_usuario.xlsx'):
 	limpiar_pantalla()
-
-
-	nombre_archivo = 'excel_usuario.xlsx'
-	nombre_hoja = 'Usuarios'
-
+	
+	print("Introduzca su nombre:")
+	nombre_hoja = input(">>> ")
+	
+	aux = "archivo_aux.xlsx"
 
 	procesos = obtener_nombre_proceso("Excel")
-
-	input(procesos)
+	
 	for i in range(len(procesos)):
 		cerrar_proceso_windows(procesos[i])
-		time.sleep(3)
+	time.sleep(2)
 	# Esta parte fue añadida para evitar que el proceso se interumpa por que el archivo esté abierto.
 	
-	datos = contenido_excel(nombre_archivo,nombre_hoja)
-	#input(datos)
+	fecha_hora = extraer_fecha_hora()
 	
-	datos1 = extraer_datos('prueba.json')
+	guardar_estadisticas(energia_mensual,ubi,fecha_hora, aux, nombre_hoja)
 	
-	datos.append(datos1)
-		
-	#input(datos)
-	guardar_excel(nombre_archivo,nombre_hoja,datos)
-	
-	datos = contenido_excel(nombre_archivo,nombre_hoja)
-	#input(datos)
+	renovar_contenido(aux,nombre_archivo,nombre_hoja)
 	
 	ruta_archivo = r'excel_usuario.xlsx' 
 	abrir_archivo(ruta_archivo,"Excel")
-	
-	datos = contenido_excel(nombre_archivo,nombre_hoja)
-	#input(datos)
-	
-	ruta_archivo = r'excel_usuario.xlsx' 
-	abrir_cerrar_archivo(ruta_archivo)
+
+if __name__ == "__main__":
+	info = main.main()
+	excel_main(info[1],info[0])
+
